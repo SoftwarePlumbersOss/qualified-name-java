@@ -57,19 +57,21 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 *  ROOT.add(part) == part
 	 * 
 	 */
-	public static final QualifiedName ROOT = new QualifiedName(null, null);
+	public static final QualifiedName ROOT = new QualifiedName(null, null) {
+		public String toString() { return "{}"; }
+		public int hashCode() { return 77; }
+		public int compareTo(QualifiedName other) { return (other == ROOT) ? 0 : -1; }
+		public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator) { return applyTo; }
+	};
 	
 	@Override
 	public int hashCode() {
-		if (parent == ROOT) return part.hashCode();
-		else return parent.hashCode() ^ part.hashCode();
+		return parent.hashCode() ^ part.hashCode();
 	}
 
 	@Override
 	public int compareTo(QualifiedName other) {
-		if (this.parent == null && other.parent == null) return 0;
-		if (this.parent == null) return -1;
-		if (other.parent == null) return 1;
+		if (other == ROOT) return 1;
 		int parentComparison = this.parent.compareTo(other.parent);
 		if (parentComparison != 0) return parentComparison;
 		return this.part.compareTo(other.part);
@@ -83,10 +85,7 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	
 	/** Apply accumulator function in depth-first order */
 	public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator) {
-		if (parent == ROOT) 
-			return accumulator.apply(applyTo, part);
-		else 
-			return accumulator.apply(parent.apply(applyTo, accumulator), part);
+		return accumulator.apply(parent.apply(applyTo, accumulator), part);
 	}
 
 	/** Join elements of the qualified name with the given separator */
