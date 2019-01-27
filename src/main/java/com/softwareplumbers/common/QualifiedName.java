@@ -7,7 +7,8 @@ import java.util.function.BiFunction;
  * Got tired of other implementations (e.g. Path) that have too many special-purpose 
  * methods in them.
  * 
- * Create a Qualified name with QualifiedName.of("abc"). 
+ * Create a new Qualified name with QualifiedName.of("abc"). 
+ * Add new parts to name with 'add'. QualifiedName.of("abc").add("def") etc.
  * 
  * @author SWPNET\jonessex
  *
@@ -29,17 +30,36 @@ public class QualifiedName implements Comparable<QualifiedName> {
 		this.part = part;
 	}
 	
+	/** Preferred way to construct a new qualified name 
+	 * 
+	 * Equivalent to ROOT.add(part)
+	 * 
+	 * @param part base of new qualified name
+	 */
 	public static QualifiedName of(String part) {
 		return ROOT.add(part);
 	}
 	
+	/** Add a new part to a qualified name
+	 * 
+	 * The new name (in dotted notation) will be <I>thisname</I>.part
+	 * 
+	 * @param part New part to add to a qualified name
+	 * @return A new qualified name (this name does not change)
+	 */
 	public final QualifiedName add(String part) {
 		if (part == null) throw new IllegalArgumentException("Cannot add a null part to a qualified name");
 		return new QualifiedName(this, part);
 	}
 
-	public static QualifiedName ROOT = new QualifiedName(null, null);
+	/** Representation of an empty qualified name.
+	 * 
+	 *  ROOT.add(part) == part
+	 * 
+	 */
+	public static final QualifiedName ROOT = new QualifiedName(null, null);
 	
+	@Override
 	public int hashCode() {
 		if (parent == ROOT) return part.hashCode();
 		else return parent.hashCode() ^ part.hashCode();
@@ -55,7 +75,13 @@ public class QualifiedName implements Comparable<QualifiedName> {
 		return this.part.compareTo(other.part);
 	}
 	
-	/** Apply accumualtor junction depth-first order */
+	@Override
+	public boolean equals(Object other) {
+		if (other == null) return false;
+		return other instanceof QualifiedName ? 0 == compareTo((QualifiedName)other) : false;
+	}
+	
+	/** Apply accumulator function in depth-first order */
 	public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator) {
 		if (parent == ROOT) 
 			return accumulator.apply(applyTo, part);
@@ -69,6 +95,10 @@ public class QualifiedName implements Comparable<QualifiedName> {
 		return apply(null, joiner);
 	}
 	
+	/** Default string representation
+	 * 
+	 * Equivalent to join(".")
+	 */
 	public String toString() {
 		return join(".");
 	}
