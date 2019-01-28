@@ -60,4 +60,12 @@ public class QualifiedNameTest {
 		assertEquals(-1,ab.compareTo(ba));
 		assertEquals(1,ab.compareTo(QualifiedName.ROOT));
 	}
+	
+	@Test
+	public void testParse() {
+		assertEquals(QualifiedName.of("a","b","c"), QualifiedName.ROOT.parse("a/b/c","\\/"));
+		assertEquals(QualifiedName.of("a","b","c"), QualifiedName.ROOT.parse("/a/b/c","\\/"));
+		assertEquals(QualifiedName.of("a","b","c"), QualifiedName.ROOT.parse("/a/b/c/","\\/"));
+		assertEquals(QualifiedName.of("a","b","c"), QualifiedName.ROOT.parse("a//b/c","\\/"));
+	}
 }

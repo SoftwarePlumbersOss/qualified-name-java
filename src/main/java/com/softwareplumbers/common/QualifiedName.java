@@ -1,5 +1,7 @@
 package com.softwareplumbers.common;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiFunction;
 
 /** Very simple qualfied name class.
@@ -38,6 +40,16 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 */
 	public static QualifiedName of(String part) {
 		return ROOT.add(part);
+	}
+		
+	/** Preferred way to construct a new qualified name 
+	 * 
+	 * Equivalent to ROOT.add(parts)
+	 * 
+	 * @param part base of new qualified name
+	 */
+	public static QualifiedName of(String... parts) {
+		return ROOT.add(parts);
 	}
 	
 	/** Add a new part to a qualified name
@@ -92,6 +104,30 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	public String join(final String separator) {
 		final BiFunction<String,String,String> joiner = (left,right)-> left==null?right:left+separator+right;
 		return apply(null, joiner);
+	}
+	
+	/** Add several elements in order */
+	public QualifiedName add(String... parts) {
+		return add(Arrays.asList(parts));
+	}
+	
+	/** Add several elements in order */
+	public QualifiedName add(List<String> parts) {
+		QualifiedName result = this;
+		for (String part : parts) result = result.add(part);
+		return result;
+	}
+	
+	/** Add several elements as parsed from a string.
+	 *
+	 * Consecutive separators are suppressed.
+	 */
+	public QualifiedName parse(String toParse, String separator) {
+		QualifiedName result = this;
+		for (String element : toParse.split(separator)) {
+			if (!element.isEmpty()) result = result.add(element);
+		};
+		return result;
 	}
 	
 	/** Default string representation
