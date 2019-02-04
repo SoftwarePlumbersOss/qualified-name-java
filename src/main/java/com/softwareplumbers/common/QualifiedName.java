@@ -37,6 +37,7 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 * Equivalent to ROOT.add(part)
 	 * 
 	 * @param part base of new qualified name
+	 * @return a new qualified name
 	 */
 	public static QualifiedName of(String part) {
 		return ROOT.add(part);
@@ -46,7 +47,8 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 * 
 	 * Equivalent to ROOT.add(parts)
 	 * 
-	 * @param part base of new qualified name
+	 * @param parts base of new qualified name
+	 * @return a new qualified name
 	 */
 	public static QualifiedName of(String... parts) {
 		return ROOT.add(parts);
@@ -95,23 +97,45 @@ public class QualifiedName implements Comparable<QualifiedName> {
 		return other instanceof QualifiedName ? 0 == compareTo((QualifiedName)other) : false;
 	}
 	
-	/** Apply accumulator function in depth-first order */
+	/** Apply accumulator function in depth-first order
+	 * 
+	 * @param <T> value type of accumulator
+	 * @param applyTo Initial accumulator value
+	 * @param accumulator Accumulation function
+	 * @return The result of applying the function to the accumulator value and each part.
+	 */
 	public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator) {
 		return accumulator.apply(parent.apply(applyTo, accumulator), part);
 	}
 
-	/** Join elements of the qualified name with the given separator */
+	/** Join elements of the qualified name with the given separator
+	 * 
+	 * @param separator string to place between elements of path
+	 * @return concatenate elements of path with separator between them.
+	 */
 	public String join(final String separator) {
 		final BiFunction<String,String,String> joiner = (left,right)-> left==null?right:left+separator+right;
 		return apply(null, joiner);
 	}
 	
-	/** Add several elements in order */
+	/** Add several elements in order.
+	 * 
+	 * Equivalent to name.add(part[0]).add(part[1])... etc
+	 * 
+	 * @param parts to add
+	 * @return new qualified name including additional parts
+	 */
 	public QualifiedName add(String... parts) {
 		return add(Arrays.asList(parts));
 	}
 	
-	/** Add several elements in order */
+	/** Add several elements in order 
+	 * 
+	 * Equivalent to name.add(part.get(0)).add(part.get(1))... etc
+	 * 
+	 * @param parts to add
+	 * @return new qualified name including additional parts
+	 */
 	public QualifiedName add(List<String> parts) {
 		QualifiedName result = this;
 		for (String part : parts) result = result.add(part);
@@ -121,6 +145,10 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	/** Add several elements as parsed from a string.
 	 *
 	 * Consecutive separators are suppressed.
+	 * 
+	 * @param toParse string to parse
+	 * @param separator separator to break up name parts
+	 * @return qualified name with the leftmost element of string as root
 	 */
 	public QualifiedName parse(String toParse, String separator) {
 		QualifiedName result = this;
@@ -133,6 +161,8 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	/** Default string representation
 	 * 
 	 * Equivalent to join(".")
+	 * 
+	 * @return join(".")
 	 */
 	public String toString() {
 		return join(".");
