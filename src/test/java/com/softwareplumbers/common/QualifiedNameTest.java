@@ -68,4 +68,9 @@ public class QualifiedNameTest {
 		assertEquals(QualifiedName.of("a","b","c"), QualifiedName.ROOT.parse("/a/b/c/","\\/"));
 		assertEquals(QualifiedName.of("a","b","c"), QualifiedName.ROOT.parse("a//b/c","\\/"));
 	}
+	
+	@Test
+	public void testReverse() {
+		assertEquals(QualifiedName.of("c","b","a"), QualifiedName.of("a","b","c").reverse());				
+	}
 }

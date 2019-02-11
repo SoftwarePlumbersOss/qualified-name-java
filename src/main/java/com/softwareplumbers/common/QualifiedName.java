@@ -76,6 +76,7 @@ public class QualifiedName implements Comparable<QualifiedName> {
 		public int hashCode() { return 77; }
 		public int compareTo(QualifiedName other) { return (other == ROOT) ? 0 : -1; }
 		public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator) { return applyTo; }
+		public <T> T applyReverse(T applyTo, BiFunction<T,String,T> accumulator) { return applyTo; }
 	};
 	
 	@Override
@@ -108,6 +109,17 @@ public class QualifiedName implements Comparable<QualifiedName> {
 		return accumulator.apply(parent.apply(applyTo, accumulator), part);
 	}
 
+	/** Apply accumulator function in reverse order
+	 * 
+	 * @param <T> value type of accumulator
+	 * @param applyTo Initial accumulator value
+	 * @param accumulator Accumulation function
+	 * @return The result of applying the function to the accumulator value and each part.
+	 */
+	public <T> T applyReverse(T applyTo, BiFunction<T,String,T> accumulator) {
+		return parent.applyReverse(accumulator.apply(applyTo, part), accumulator);
+	}
+	
 	/** Join elements of the qualified name with the given separator
 	 * 
 	 * @param separator string to place between elements of path
@@ -166,5 +178,13 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 */
 	public String toString() {
 		return join(".");
+	}
+	
+	/** Reverse the order of the elements
+	 * 
+	 * @return A qualified name with parts in reverse order to this one
+	 */
+	public QualifiedName reverse() {
+		return applyReverse(ROOT, (a,e)->a.add(e));
 	}
 }
