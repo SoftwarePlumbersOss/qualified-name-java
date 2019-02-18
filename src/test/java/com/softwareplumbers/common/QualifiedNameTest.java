@@ -183,4 +183,16 @@ public class QualifiedNameTest {
 		assertEquals(ABCDEF, ABCDEF.rightFromStart(0));
 		assertEquals(QualifiedName.ROOT, ABCDEF.rightFromStart(20));
 	}
+	
+	@Test
+	public void testPatternMatch() {
+		QualifiedName shouldMatch1 = QualifiedName.of("peter","piper","picked");
+		QualifiedName shouldMatch2 = QualifiedName.of("peter","poper","jumped");
+		QualifiedName shouldntMatch = QualifiedName.of("david","piper","picked");
+		QualifiedName pattern = QualifiedName.of("p.*","p.per",".*d");
+		
+		assertTrue(shouldMatch1.matches(pattern, true));
+		assertTrue(shouldMatch2.matches(pattern, true));
+		assertFalse(shouldntMatch.matches(pattern, true));
+	}
 }
