@@ -3,6 +3,9 @@ package com.softwareplumbers.common;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /** Very simple qualfied name class.
  * 
@@ -54,6 +57,10 @@ public class QualifiedName implements Comparable<QualifiedName> {
 		return ROOT.add(parts);
 	}
 	
+	public static QualifiedName parse(String name, String separator) {
+		return ROOT.addParsed(name, separator);
+	}
+	
 	/** Add a new part to a qualified name
 	 * 
 	 * The new name (in dotted notation) will be <I>thisname</I>.part
@@ -77,6 +84,8 @@ public class QualifiedName implements Comparable<QualifiedName> {
 		public int compareTo(QualifiedName other) { return (other == ROOT) ? 0 : -1; }
 		public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator) { return applyTo; }
 		public <T> T applyReverse(T applyTo, BiFunction<T,String,T> accumulator) { return applyTo; }
+		public boolean contains(Predicate<String> predicate) { return false; }
+		public boolean matches(QualifiedName name, BiPredicate<String,String> predicate, boolean match_all) { return name == ROOT || !match_all; }
 	};
 	
 	@Override
@@ -107,6 +116,29 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 */
 	public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator) {
 		return accumulator.apply(parent.apply(applyTo, accumulator), part);
+	}
+	
+	/** Find if any part satisfies a predicate
+	 * 
+	 * @param predicate
+	 * @return true if predicate returns true for any part
+	 */
+	public boolean contains(Predicate<String> predicate) {
+		if (predicate.test(part)) return true;
+		return parent.contains(predicate);
+	}
+	
+	/** Match this name against another using a predicate
+	 * 
+	 * @param name Name to match
+	 * @param matcher Predicate to determine whether parts match
+	 * @param match_all if true, all parts in given name must match all parts in this name
+	 * @return true if matcher is satisfied for each corresponding part of this and the given name
+	 */
+	public boolean matches(QualifiedName name, BiPredicate<String,String> matcher, boolean match_all) {
+		if (name == ROOT) return false;
+		return matcher.test(part, name.part) && parent.matches(name.parent, matcher, match_all);
+		
 	}
 
 	/** Apply accumulator function in reverse order
@@ -162,7 +194,7 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 * @param separator separator to break up name parts
 	 * @return qualified name with the leftmost element of string as root
 	 */
-	public QualifiedName parse(String toParse, String separator) {
+	public QualifiedName addParsed(String toParse, String separator) {
 		QualifiedName result = this;
 		for (String element : toParse.split(separator)) {
 			if (!element.isEmpty()) result = result.add(element);
@@ -186,5 +218,33 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 */
 	public QualifiedName reverse() {
 		return applyReverse(ROOT, (a,e)->a.add(e));
+	}
+	
+	/** Check to see if a qualified name ends with a given name
+	 * 
+	 * @param name
+	 * @return true if the last elements of this qualified name match the given name
+	 */
+	public boolean endsWith(QualifiedName name) {
+		return name.matches(this, (a,b) -> a.equals(b), false);
+	}
+	
+	/** Check to see if a qualified name starts with a given name
+	 * 
+	 * @param name
+	 * @return true if the first elements of this qualified name match the given name
+	 */
+	public boolean startsWith(QualifiedName name) {
+		return reverse().endsWith(name.reverse());
+	}
+	
+	/** Match against a sequence of regular expressions
+	 * 
+	 * @param pattern A qualified name formed of regular expressions
+	 * @param match_all
+	 * @return true if regex parts from pattern match parts of this name 
+	 */
+	public boolean matches(QualifiedName pattern, boolean match_all) {
+		return pattern.matches(this, (regex, part) -> Pattern.matches(regex, part), match_all);
 	}
 }
