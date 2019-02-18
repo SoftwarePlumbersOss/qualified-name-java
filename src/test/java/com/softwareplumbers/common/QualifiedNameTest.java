@@ -97,19 +97,90 @@ public class QualifiedNameTest {
 	}
 
 	@Test
-	public void testContains() {
+	public void testIndexFromEnd() {
 		QualifiedName ABC = QualifiedName.of("a","b","c");
-		assertTrue(ABC.contains(e -> e.equals("a")));
-		assertTrue(ABC.contains(e -> e.equals("b")));
-		assertTrue(ABC.contains(e -> e.equals("c")));
-		assertFalse(ABC.contains(e -> e.equals("d")));
+		assertEquals(2,ABC.indexFromEnd(e -> e.equals("a")));
+		assertEquals(1,ABC.indexFromEnd(e -> e.equals("b")));
+		assertEquals(0,ABC.indexFromEnd(e -> e.equals("c")));
+		assertEquals(-1,ABC.indexFromEnd(e -> e.equals("d")));
 	}
 	
+	@Test
+	public void testIndexOf() {
+		QualifiedName ABC = QualifiedName.of("a","b","c");
+		assertEquals(0,ABC.indexOf(e -> e.equals("a")));
+		assertEquals(1,ABC.indexOf(e -> e.equals("b")));
+		assertEquals(2,ABC.indexOf(e -> e.equals("c")));
+		assertEquals(-1,ABC.indexOf(e -> e.equals("d")));
+	}
+
 	@Test
 	public void testGet() {
 		QualifiedName ABC = QualifiedName.of("a","b","c");
 		assertEquals("a", ABC.get(0));
 		assertEquals("b", ABC.get(1));
 		assertEquals("c", ABC.get(2));
+	}
+	
+	@Test
+	public void testGetFromEnd() {
+		QualifiedName ABC = QualifiedName.of("a","b","c");
+		assertEquals("a", ABC.getFromEnd(2));
+		assertEquals("b", ABC.getFromEnd(1));
+		assertEquals("c", ABC.getFromEnd(0));
+	}
+	
+	@Test
+	public void testUpTo() {
+		QualifiedName TEST1 = QualifiedName.of("www","softwareplumbers","com");
+		QualifiedName result = TEST1.upTo(elem -> elem.contains("ware"));
+		assertEquals(QualifiedName.of("www","softwareplumbers"), result);
+	}
+	
+	@Test
+	public void testFrom() {
+		QualifiedName TEST1 = QualifiedName.of("www","softwareplumbers","com");
+		QualifiedName result = TEST1.fromEnd(elem -> elem.contains("ware"));
+		assertEquals(QualifiedName.of("com"), result);
+	}
+	
+	@Test
+	public void testRight() {
+		QualifiedName ABCDEF = QualifiedName.of("a","b","c","d","e","f");
+		QualifiedName DEF = QualifiedName.of("d","e","f");
+		assertEquals(DEF, ABCDEF.right(3));
+		assertEquals(QualifiedName.ROOT, ABCDEF.right(0));
+		assertEquals(ABCDEF, ABCDEF.right(20));
+	}
+	
+	@Test
+	public void testLeftFromEnd() {
+		QualifiedName ABCDEF = QualifiedName.of("a","b","c","d","e","f");
+		QualifiedName ABC = QualifiedName.of("a","b","c");
+		assertEquals(ABC, ABCDEF.leftFromEnd(3));
+		assertEquals(QualifiedName.ROOT, ABCDEF.leftFromEnd(20));
+		assertEquals(ABCDEF, ABCDEF.leftFromEnd(0));
+	}
+	
+	@Test
+	public void testLeft() {
+		QualifiedName ABCDEF = QualifiedName.of("a","b","c","d","e","f");
+		QualifiedName ABC = QualifiedName.of("a","b","c");
+		QualifiedName ABCD = QualifiedName.of("a","b","c","d");
+		assertEquals(ABC, ABCDEF.left(3));
+		assertEquals(ABCD, ABCDEF.left(4));
+		assertEquals(QualifiedName.ROOT, ABCDEF.left(0));
+		assertEquals(ABCDEF, ABCDEF.left(20));
+	}
+
+	@Test
+	public void testRightFromStart() {
+		QualifiedName ABCDEF = QualifiedName.of("a","b","c","d","e","f");
+		QualifiedName DEF = QualifiedName.of("d","e","f");
+		QualifiedName EF = QualifiedName.of("e","f");
+		assertEquals(DEF, ABCDEF.rightFromStart(3));
+		assertEquals(EF, ABCDEF.rightFromStart(4));
+		assertEquals(ABCDEF, ABCDEF.rightFromStart(0));
+		assertEquals(QualifiedName.ROOT, ABCDEF.rightFromStart(20));
 	}
 }

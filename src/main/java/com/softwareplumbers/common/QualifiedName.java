@@ -1,7 +1,7 @@
 package com.softwareplumbers.common;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Iterator;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * @author SWPNET\jonessex
  *
  */
-public class QualifiedName implements Comparable<QualifiedName> {
+public class QualifiedName implements Comparable<QualifiedName>, Iterable<String> {
 	
 	/** Parent part of name - the name of the enclosing scope.
 	 * 
@@ -54,7 +54,7 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 * @return a new qualified name
 	 */
 	public static QualifiedName of(String... parts) {
-		return ROOT.add(parts);
+		return ROOT.addAll(parts);
 	}
 	
 	public static QualifiedName parse(String name, String separator) {
@@ -82,11 +82,15 @@ public class QualifiedName implements Comparable<QualifiedName> {
 		public String toString() { return "{}"; }
 		public int hashCode() { return 77; }
 		public int compareTo(QualifiedName other) { return (other == ROOT) ? 0 : -1; }
-		public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator) { return applyTo; }
-		public <T> T applyReverse(T applyTo, BiFunction<T,String,T> accumulator) { return applyTo; }
-		public boolean contains(Predicate<String> predicate) { return false; }
+		public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator, Predicate<T> whiletrue) { return applyTo; }
+		public <T> T applyReverse(T applyTo, BiFunction<T,String,T> accumulator, BiPredicate<T,String> whiletrue) { return applyTo; }
+		public int indexFromEnd(Predicate<String> predicate) { return -1; }
+		public QualifiedName right(int index) { return this; }
+		public QualifiedName leftFromEnd(int index) { return this; }
 		public boolean matches(QualifiedName name, BiPredicate<String,String> predicate, boolean match_all) { return name == ROOT || !match_all; }
 		public String getFromEnd(int index) { return null; }
+		public int size() { return 0; }
+		public boolean isEmpty() { return true; }
 	};
 	
 	@Override
@@ -113,20 +117,47 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 * @param <T> value type of accumulator
 	 * @param applyTo Initial accumulator value
 	 * @param accumulator Accumulation function
+	 * @param whiletrue Stop and return what we have when false
+	 * @return The result of applying the function to the accumulator value and each part.
+	 */
+	public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator, Predicate<T> whiletrue) {
+
+		T result = parent.apply(applyTo, accumulator, whiletrue);
+		if (whiletrue.test(result))
+			return accumulator.apply(result, part);
+		else
+			return result;
+	}
+	
+	/** Apply accumulator function in depth-first order
+	 * 
+	 * @param <T> value type of accumulator
+	 * @param applyTo Initial accumulator value
+	 * @param accumulator Accumulation function
 	 * @return The result of applying the function to the accumulator value and each part.
 	 */
 	public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator) {
-		return accumulator.apply(parent.apply(applyTo, accumulator), part);
+		return apply(applyTo, accumulator, (t)->true);
 	}
 	
 	/** Find if any part satisfies a predicate
 	 * 
 	 * @param predicate
-	 * @return true if predicate returns true for any part
+	 * @return smallest index (from end) of part matching predicate
 	 */
-	public boolean contains(Predicate<String> predicate) {
-		if (predicate.test(part)) return true;
-		return parent.contains(predicate);
+	public int indexFromEnd(Predicate<String> predicate) {
+		if (predicate.test(part)) return 0;
+		int result = parent.indexFromEnd(predicate);
+		return (result < 0) ? result : 1 + result;
+	}
+	
+	/** Find if any part satisfies a predicate
+	 * 
+	 * @param predicate
+	 * @return smallest index (from start) of part matching predicate
+	 */
+	public int indexOf(Predicate<String> predicate) {
+		return reverse().indexFromEnd(predicate);
 	}
 	
 	/** Match this name against another using a predicate
@@ -147,10 +178,25 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 * @param <T> value type of accumulator
 	 * @param applyTo Initial accumulator value
 	 * @param accumulator Accumulation function
+	 * @param whiletrue Termination function - stop applying when false
+	 * @return The result of applying the function to the accumulator value and each part.
+	 */
+	public <T> T applyReverse(T applyTo, BiFunction<T,String,T> accumulator, BiPredicate<T,String> whiletrue) {
+		if (whiletrue.test(applyTo, part)) 
+			return parent.applyReverse(accumulator.apply(applyTo, part), accumulator, whiletrue);
+		else
+			return applyTo;
+	}
+	
+	/** Apply accumulator function in reverse order
+	 * 
+	 * @param <T> value type of accumulator
+	 * @param applyTo Initial accumulator value
+	 * @param accumulator Accumulation function
 	 * @return The result of applying the function to the accumulator value and each part.
 	 */
 	public <T> T applyReverse(T applyTo, BiFunction<T,String,T> accumulator) {
-		return parent.applyReverse(accumulator.apply(applyTo, part), accumulator);
+		return applyReverse(applyTo, accumulator, (x,y)->true);
 	}
 	
 	/** Join elements of the qualified name with the given separator
@@ -170,8 +216,8 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 * @param parts to add
 	 * @return new qualified name including additional parts
 	 */
-	public QualifiedName add(String... parts) {
-		return add(Arrays.asList(parts));
+	public QualifiedName addAll(String... parts) {
+		return addAll(Arrays.asList(parts));
 	}
 	
 	/** Add several elements in order 
@@ -181,7 +227,7 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 * @param parts to add
 	 * @return new qualified name including additional parts
 	 */
-	public QualifiedName add(List<String> parts) {
+	public QualifiedName addAll(Iterable<String> parts) {
 		QualifiedName result = this;
 		for (String part : parts) result = result.add(part);
 		return result;
@@ -239,6 +285,46 @@ public class QualifiedName implements Comparable<QualifiedName> {
 		return reverse().endsWith(name.reverse());
 	}
 	
+	/** Return elements in a qualified name up to the one matching the predicate 
+	 * 
+	 * @param matching
+	 * @return
+	 */
+	public QualifiedName upTo(Predicate<String> matching) {
+		return apply(ROOT, (result,elem)->result.add(elem), (result)->result==ROOT || !matching.test(result.part)); 
+	}
+	
+	/** Return elements in a qualified name up to the given index, counting from start */
+	public QualifiedName left(int index) {	
+		return leftFromEnd(size()-index);
+	}
+
+	/** Return elements in a qualified name from the given index, counting from start */
+	public QualifiedName rightFromStart(int index) {
+		return right(size()-index);
+	}	
+
+	/** Return elements in a qualified name from the last one matching the predicate 
+	 * 
+	 * @param matching
+	 * @return
+	 */
+	public QualifiedName fromEnd(Predicate<String> matching) {
+		return applyReverse(ROOT, (result,elem)->result.add(elem), (result,elem) -> !matching.test(elem)).reverse();
+	}
+	
+	public QualifiedName right(int index) {
+		if (index <= 0) return ROOT;
+		if (index == 1) return QualifiedName.of(part);
+		return parent.right(index-1).add(part);
+	}
+	
+	public QualifiedName leftFromEnd(int index) {
+		if (index <= 0) return this;
+		return parent.leftFromEnd(index-1);
+	}
+
+	
 	/** Match against a sequence of regular expressions
 	 * 
 	 * @param pattern A qualified name formed of regular expressions
@@ -265,6 +351,61 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	 */
 	public String get(int index) {
 		return reverse().getFromEnd(index);
+	}
+	
+	/** Get number of parts in name
+	 * 
+	 * @return number of parts in this name
+	 */
+	public int size() {
+		return parent.size()+1;
+	}
+	
+	/** Check if name is empty
+	 * 
+	 * @return true if name has no parts
+	 */
+	public boolean isEmpty() {
+		return false;
+	}
+
+	/** Iterator over parts
+	 * 
+	 * @author SWPNET\jonessex
+	 *
+	 */
+	private static class MyIterator implements Iterator<String> {
+		
+		QualifiedName current;
+		
+		public MyIterator(QualifiedName current) { this.current = current; }
+
+		@Override
+		public boolean hasNext() {
+			return current != ROOT;
+		}
+
+		@Override
+		public String next() {
+			String next = current.part;
+			current = current.parent;
+			return next;
+		}
+	}
+	
+	/** Iterate over parts from first to last
+	 * 
+	 */
+	@Override
+	public Iterator<String> iterator() {
+		return reverse().reverseIterator();
+	}
+	
+	/** Iterate over parts from last to first
+	 * 
+	 */
+	public Iterator<String> reverseIterator() {
+		return new MyIterator(this);
 	}
 
 }
