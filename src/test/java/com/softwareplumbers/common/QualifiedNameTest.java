@@ -63,40 +63,53 @@ public class QualifiedNameTest {
 	
 	@Test
 	public void testParse() {
-		assertEquals(QualifiedName.of("a","b","c"), QualifiedName.parse("a/b/c","\\/"));
-		assertEquals(QualifiedName.of("a","b","c"), QualifiedName.parse("/a/b/c","\\/"));
-		assertEquals(QualifiedName.of("a","b","c"), QualifiedName.parse("/a/b/c/","\\/"));
-		assertEquals(QualifiedName.of("a","b","c"), QualifiedName.parse("a//b/c","\\/"));
+		QualifiedName ABC = QualifiedName.of("a","b","c");
+		assertEquals(ABC, QualifiedName.parse("a/b/c","\\/"));
+		assertEquals(ABC, QualifiedName.parse("/a/b/c","\\/"));
+		assertEquals(ABC, QualifiedName.parse("/a/b/c/","\\/"));
+		assertEquals(ABC, QualifiedName.parse("a//b/c","\\/"));
 	}
 	
 	@Test
 	public void testReverse() {
-		assertEquals(QualifiedName.of("c","b","a"), QualifiedName.of("a","b","c").reverse());				
+		QualifiedName ABC = QualifiedName.of("a","b","c");
+		assertEquals(QualifiedName.of("c","b","a"), ABC.reverse());				
 	}
 	
 	@Test
 	public void testStartsWith() {
-		assertTrue(QualifiedName.of("a","b","c").startsWith(QualifiedName.of("a","b","c")));
-		assertTrue(QualifiedName.of("a","b","c").startsWith(QualifiedName.of("a","b")));
-		assertTrue(QualifiedName.of("a","b","c").startsWith(QualifiedName.of("a")));
-		assertFalse(QualifiedName.of("a","b","c").startsWith(QualifiedName.of("c")));
-		assertFalse(QualifiedName.of("a","b","c").startsWith(QualifiedName.of("a","b","c","d")));
+		QualifiedName ABC = QualifiedName.of("a","b","c");
+		assertTrue(ABC.startsWith(QualifiedName.of("a","b","c")));
+		assertTrue(ABC.startsWith(QualifiedName.of("a","b")));
+		assertTrue(ABC.startsWith(QualifiedName.of("a")));
+		assertFalse(ABC.startsWith(QualifiedName.of("c")));
+		assertFalse(ABC.startsWith(QualifiedName.of("a","b","c","d")));
 	}
 
 	@Test
 	public void testEndsWith() {
-		assertTrue(QualifiedName.of("a","b","c").endsWith(QualifiedName.of("a","b","c")));
-		assertTrue(QualifiedName.of("a","b","c").endsWith(QualifiedName.of("b","c")));
-		assertTrue(QualifiedName.of("a","b","c").endsWith(QualifiedName.of("c")));
-		assertFalse(QualifiedName.of("a","b","c").endsWith(QualifiedName.of("a")));
-		assertFalse(QualifiedName.of("a","b","c").endsWith(QualifiedName.of("a","b","c","d")));
+		QualifiedName ABC = QualifiedName.of("a","b","c");
+		assertTrue(ABC.endsWith(QualifiedName.of("a","b","c")));
+		assertTrue(ABC.endsWith(QualifiedName.of("b","c")));
+		assertTrue(ABC.endsWith(QualifiedName.of("c")));
+		assertFalse(ABC.endsWith(QualifiedName.of("a")));
+		assertFalse(ABC.endsWith(QualifiedName.of("a","b","c","d")));
 	}
 
 	@Test
 	public void testContains() {
-		assertTrue(QualifiedName.of("a","b","c").contains(e -> e.equals("a")));
-		assertTrue(QualifiedName.of("a","b","c").contains(e -> e.equals("b")));
-		assertTrue(QualifiedName.of("a","b","c").contains(e -> e.equals("c")));
-		assertFalse(QualifiedName.of("a","b","c").contains(e -> e.equals("d")));
+		QualifiedName ABC = QualifiedName.of("a","b","c");
+		assertTrue(ABC.contains(e -> e.equals("a")));
+		assertTrue(ABC.contains(e -> e.equals("b")));
+		assertTrue(ABC.contains(e -> e.equals("c")));
+		assertFalse(ABC.contains(e -> e.equals("d")));
+	}
+	
+	@Test
+	public void testGet() {
+		QualifiedName ABC = QualifiedName.of("a","b","c");
+		assertEquals("a", ABC.get(0));
+		assertEquals("b", ABC.get(1));
+		assertEquals("c", ABC.get(2));
 	}
 }

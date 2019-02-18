@@ -86,6 +86,7 @@ public class QualifiedName implements Comparable<QualifiedName> {
 		public <T> T applyReverse(T applyTo, BiFunction<T,String,T> accumulator) { return applyTo; }
 		public boolean contains(Predicate<String> predicate) { return false; }
 		public boolean matches(QualifiedName name, BiPredicate<String,String> predicate, boolean match_all) { return name == ROOT || !match_all; }
+		public String getFromEnd(int index) { return null; }
 	};
 	
 	@Override
@@ -247,4 +248,23 @@ public class QualifiedName implements Comparable<QualifiedName> {
 	public boolean matches(QualifiedName pattern, boolean match_all) {
 		return pattern.matches(this, (regex, part) -> Pattern.matches(regex, part), match_all);
 	}
+	
+	/** Get the part that is nth from then end
+	 * 
+	 * @param index
+	 * @return A part
+	 */
+	public String getFromEnd(int index) {
+		return (index == 0) ? part : parent.getFromEnd(index-1);
+	}
+	
+	/** Get the part that is nth from the start
+	 * 
+	 * @param index
+	 * @return A part
+	 */
+	public String get(int index) {
+		return reverse().getFromEnd(index);
+	}
+
 }
