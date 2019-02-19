@@ -17,6 +17,13 @@ public class QualifiedNameTest {
 	public void testRootFormat() {
 		assertEquals("{}", QualifiedName.ROOT.toString());
 	}
+	
+	@Test
+	public void testJoin() {
+		QualifiedName ABC = QualifiedName.of("a","b","c");
+		assertEquals("a/b/c", ABC.join("/"));
+		assertEquals("", QualifiedName.ROOT.join("/"));
+	}
 
 	@Test
 	public void testEquals() {

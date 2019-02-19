@@ -205,8 +205,8 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	 * @return concatenate elements of path with separator between them.
 	 */
 	public String join(final String separator) {
-		final BiFunction<String,String,String> joiner = (left,right)-> left==null?right:left+separator+right;
-		return apply(null, joiner);
+		final BiFunction<String,String,String> joiner = (left,right)-> left.isEmpty()?right:left+separator+right;
+		return apply("", joiner);
 	}
 	
 	/** Add several elements in order.
