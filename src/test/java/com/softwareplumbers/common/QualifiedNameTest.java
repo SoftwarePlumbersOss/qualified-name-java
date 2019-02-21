@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.junit.Test;
 
 public class QualifiedNameTest {
@@ -201,5 +204,14 @@ public class QualifiedNameTest {
 		assertTrue(shouldMatch1.matches(pattern, true));
 		assertTrue(shouldMatch2.matches(pattern, true));
 		assertFalse(shouldntMatch.matches(pattern, true));
+	}
+	
+	@Test
+	public void testApply() {
+		Map<String,Object> m1 = new TreeMap<>(); m1.put("a", "A"); m1.put("b", "B");
+		Map<String,Object> m2 = new TreeMap<>(); m2.put("c", "C"); m2.put("d", "D");
+		Map<String,Object> m3 = new TreeMap<>(); m3.put("x",m1); m3.put("y", m2);
+		assertEquals("B", QualifiedName.of("x","b").apply(m3));
+		assertEquals("C", QualifiedName.of("y","c").apply(m3));
 	}
 }

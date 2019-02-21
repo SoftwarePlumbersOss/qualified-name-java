@@ -2,6 +2,7 @@ package com.softwareplumbers.common;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -406,6 +407,13 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	 */
 	public Iterator<String> reverseIterator() {
 		return new MyIterator(this);
+	}
+	
+	/** Apply a qualified name to a map-of-maps (such as JsonObject) */
+	public <T> T apply(Map<String,T> map) {
+		if (!parent.isEmpty()) 
+			map = (Map<String,T>)parent.apply(map);
+		return map.get(part);
 	}
 
 }
