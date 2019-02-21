@@ -411,9 +411,14 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
 	/** Apply a qualified name to a map-of-maps (such as JsonObject) */
 	public <T> T apply(Map<String,T> map) {
-		if (!parent.isEmpty()) 
-			map = (Map<String,T>)parent.apply(map);
-		return map.get(part);
+		if (!parent.isEmpty()) {
+			try { 
+				map = (Map<String,T>)parent.apply(map);
+			} catch (ClassCastException e) {
+				map = null;
+			}
+		}
+		return map == null ? null : map.get(part);
 	}
 
 }

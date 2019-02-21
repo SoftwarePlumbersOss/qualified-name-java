@@ -2,6 +2,7 @@ package com.softwareplumbers.common;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
@@ -213,5 +214,7 @@ public class QualifiedNameTest {
 		Map<String,Object> m3 = new TreeMap<>(); m3.put("x",m1); m3.put("y", m2);
 		assertEquals("B", QualifiedName.of("x","b").apply(m3));
 		assertEquals("C", QualifiedName.of("y","c").apply(m3));
+		assertNull(QualifiedName.of("y","a").apply(m3));
+		assertNull(QualifiedName.of("y","a","x").apply(m3));
 	}
 }
