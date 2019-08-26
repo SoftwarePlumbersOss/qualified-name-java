@@ -221,8 +221,30 @@ public class QualifiedNameTest {
     @Test
     public void testTransform() {
         QualifiedName n1 = QualifiedName.of("x","abc","2");
-        String s1;
         assertEquals(QualifiedName.of("X","ABC","2"), n1.transform(String::toUpperCase));
+    }
+    
+    @Test
+    public void testTransformWithLambda() {
+        QualifiedName n1 = QualifiedName.of("x","abc","2");
+        assertEquals(QualifiedName.of("X","ABC","2"), n1.transform(i->i.toUpperCase()));
+    }
+    
+    private static class TestException extends Exception {};
+    
+    private static String testTransform(String input) throws TestException {
+        if ("ERROR".equals(input)) throw new TestException();
+        return input;
+    }
+    
+    @Test
+    public void testTransformWithCheckedException() {
+        try {
+            QualifiedName n1 = QualifiedName.of("x","abc","2");
+            assertEquals(QualifiedName.of("x","abc","2"), n1.transform(QualifiedNameTest::testTransform));
+        } catch (TestException e) {
+            // OK
+        }
     }
     
 }

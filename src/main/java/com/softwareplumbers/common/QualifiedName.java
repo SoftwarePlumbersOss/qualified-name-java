@@ -21,6 +21,11 @@ import java.util.regex.Pattern;
  *
  */
 public class QualifiedName implements Comparable<QualifiedName>, Iterable<String> {
+    
+    @FunctionalInterface
+    public interface Transformer<E extends Exception> {
+        String transform(String part) throws E;
+    }
 	
 	/** Parent part of name - the name of the enclosing scope.
 	 * 
@@ -106,7 +111,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
         @Override
 		public boolean isEmpty() { return true; }
         @Override
-        public QualifiedName transform(Function<String,String> transformer) { return this; }
+        public <E extends Exception> QualifiedName transform(Transformer<E> transformer) throws E { return this; } 
         @Override
         public boolean equals(Object obj) { return obj == ROOT; }
 	};
@@ -160,11 +165,13 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
     
     /** Transform each element of a QualifiedName
      * 
+     * @param <E> Exception type thrown by transformer function
      * @param transformer function to transform each part of this name
      * @return a qualified name with each element of this qualified name transformed by the transformer 
+     * @throws E Exception propagated from transformer
      */
-    public QualifiedName transform(Function<String,String> transformer) {
-        return parent.transform(transformer).add(transformer.apply(part));
+    public <E extends Exception> QualifiedName transform(Transformer<E> transformer) throws E {
+        return parent.transform(transformer).add(transformer.transform(part));        
     }
 	
 	/** Find if any part satisfies a predicate
