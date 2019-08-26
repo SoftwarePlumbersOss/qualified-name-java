@@ -217,4 +217,12 @@ public class QualifiedNameTest {
 		assertNull(QualifiedName.of("y","a").apply(m3));
 		assertNull(QualifiedName.of("y","a","x").apply(m3));
 	}
+    
+    @Test
+    public void testTransform() {
+        QualifiedName n1 = QualifiedName.of("x","abc","2");
+        String s1;
+        assertEquals(QualifiedName.of("X","ABC","2"), n1.transform(String::toUpperCase));
+    }
+    
 }
