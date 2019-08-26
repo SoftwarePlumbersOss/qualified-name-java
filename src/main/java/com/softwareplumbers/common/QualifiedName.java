@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -80,18 +81,34 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	 * 
 	 */
 	public static final QualifiedName ROOT = new QualifiedName(null, null) {
+        @Override
 		public String toString() { return "{}"; }
+        @Override
 		public int hashCode() { return 77; }
+        @Override
 		public int compareTo(QualifiedName other) { return (other == ROOT) ? 0 : -1; }
+        @Override
 		public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator, Predicate<T> whiletrue) { return applyTo; }
+        @Override
 		public <T> T applyReverse(T applyTo, BiFunction<T,String,T> accumulator, BiPredicate<T,String> whiletrue) { return applyTo; }
+        @Override
 		public int indexFromEnd(Predicate<String> predicate) { return -1; }
+        @Override
 		public QualifiedName right(int index) { return this; }
+        @Override
 		public QualifiedName leftFromEnd(int index) { return this; }
+        @Override
 		public boolean matches(QualifiedName name, BiPredicate<String,String> predicate, boolean match_all) { return name == ROOT || !match_all; }
+        @Override
 		public String getFromEnd(int index) { return null; }
+        @Override
 		public int size() { return 0; }
+        @Override
 		public boolean isEmpty() { return true; }
+        @Override
+        public QualifiedName transform(Function<String,String> transformer) { return this; }
+        @Override
+        public boolean equals(Object obj) { return obj == ROOT; }
 	};
 	
 	@Override
@@ -140,6 +157,15 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	public <T> T apply(T applyTo, BiFunction<T,String,T> accumulator) {
 		return apply(applyTo, accumulator, (t)->true);
 	}
+    
+    /** Transform each element of a QualifiedName
+     * 
+     * @param transformer function to transform each part of this name
+     * @return a qualified name with each element of this qualified name transformed by the transformer 
+     */
+    public QualifiedName transform(Function<String,String> transformer) {
+        return parent.transform(transformer).add(transformer.apply(part));
+    }
 	
 	/** Find if any part satisfies a predicate
 	 * 
@@ -230,7 +256,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	 */
 	public QualifiedName addAll(Iterable<String> parts) {
 		QualifiedName result = this;
-		for (String part : parts) result = result.add(part);
+		for (String p : parts) result = result.add(p);
 		return result;
 	}
 	
@@ -246,7 +272,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 		QualifiedName result = this;
 		for (String element : toParse.split(separator)) {
 			if (!element.isEmpty()) result = result.add(element);
-		};
+		}
 		return result;
 	}
 	
@@ -256,6 +282,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	 * 
 	 * @return join(".")
 	 */
+    @Override
 	public String toString() {
 		return join(".");
 	}
@@ -295,12 +322,20 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 		return apply(ROOT, (result,elem)->result.add(elem), (result)->result==ROOT || !matching.test(result.part)); 
 	}
 	
-	/** Return elements in a qualified name up to the given index, counting from start */
+	/** Return elements in a qualified name up to the given index, counting from start
+     * 
+     * @param index
+     * @return the leftmost parts of the qualified name, up to index
+     */
 	public QualifiedName left(int index) {	
 		return leftFromEnd(size()-index);
 	}
 
-	/** Return elements in a qualified name from the given index, counting from start */
+	/** Return elements in a qualified name from the given index, counting from start
+     * 
+     * @param index
+     * @return the rightmost parts of the qualified name, starting from index
+     */
 	public QualifiedName rightFromStart(int index) {
 		return right(size()-index);
 	}	
@@ -333,7 +368,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	 * @return true if regex parts from pattern match parts of this name 
 	 */
 	public boolean matches(QualifiedName pattern, boolean match_all) {
-		return pattern.matches(this, (regex, part) -> Pattern.matches(regex, part), match_all);
+		return pattern.matches(this, (regex, myPart) -> Pattern.matches(regex, myPart), match_all);
 	}
 	
 	/** Get the part that is nth from then end
@@ -403,13 +438,17 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	}
 	
 	/** Iterate over parts from last to first
-	 * 
+     * @return an iterator over parts of this qualified name 
 	 */
 	public Iterator<String> reverseIterator() {
 		return new MyIterator(this);
 	}
 	
-	/** Apply a qualified name to a map-of-maps (such as JsonObject) */
+	/** Apply a qualified name to a map-of-maps (such as JsonObject)
+     * @param <T> value type of map
+     * @param map map of strings to T
+     * @return the result of looking up successive elements of this name in map and returned maps. 
+     */
 	public <T> T apply(Map<String,T> map) {
 		if (!parent.isEmpty()) {
 			try { 
