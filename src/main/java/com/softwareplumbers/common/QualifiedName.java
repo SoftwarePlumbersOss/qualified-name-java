@@ -8,6 +8,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /** Very simple qualfied name class.
  * 
@@ -21,6 +22,8 @@ import java.util.regex.Pattern;
  *
  */
 public class QualifiedName implements Comparable<QualifiedName>, Iterable<String> {
+    
+    public static final String DEFAULT_ESCAPE="\\";
     
     @FunctionalInterface
     public interface Transformer<E extends Exception> {
@@ -232,16 +235,40 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	public <T> T applyReverse(T applyTo, BiFunction<T,String,T> accumulator) {
 		return applyReverse(applyTo, accumulator, (x,y)->true);
 	}
+    
+    private static String escape(final String toEscape, final String separator, final String escape) {
+        return toEscape.replace(escape,escape+escape).replace(separator, escape + separator);
+    }
 	
-	/** Join elements of the qualified name with the given separator
+	/** Join elements of the qualified name with the given separator.
+     * 
+     * if the given separator exists with any part of the name, it will be escaped
+     * by doubling the separator character.
+	 * 
+	 * @param separator string to place between elements of path
+     * @param escape string to prefix separator with if found in the parts of this name
+	 * @return concatenate elements of path with separator between them.
+	 */
+	public String join(final String separator, final String escape) {
+		final BiFunction<String,String,String> joiner = (left,right)-> {
+            return left.isEmpty()
+                ? escape(right, separator, escape)
+                : left + separator + escape(right, separator, escape);
+        };
+		return apply("", joiner);
+	}
+    
+    /** Join elements of the qualified name with the given separator.
+     * 
+     * if the given separator exists with any part of the name, it will be escaped
+     * with DEFAULT_ESCAPE.
 	 * 
 	 * @param separator string to place between elements of path
 	 * @return concatenate elements of path with separator between them.
 	 */
-	public String join(final String separator) {
-		final BiFunction<String,String,String> joiner = (left,right)-> left.isEmpty()?right:left+separator+right;
-		return apply("", joiner);
-	}
+    public String join(final String separator) {
+        return join(separator, DEFAULT_ESCAPE);
+    }
 	
 	/** Add several elements in order.
 	 * 
@@ -267,21 +294,35 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 		return result;
 	}
 	
+    enum ParseState { BEGIN, SEPARATOR_AT_START, JOIN, NEXT }
+    
+    private static final String unescape(String escaped, String escape) {
+        String regexEscape = escape.replace("\\", "\\\\");
+        return escaped
+            .replaceAll("(?<!"+ regexEscape +")" + regexEscape, "")
+            .replaceAll(regexEscape + regexEscape, escape);
+    }
+    
 	/** Add several elements as parsed from a string.
-	 *
-	 * Consecutive separators are suppressed.
 	 * 
 	 * @param toParse string to parse
 	 * @param separator separator to break up name parts
+     * @param escape escape character, which is used as prefix for separator
 	 * @return qualified name with the leftmost element of string as root
 	 */
-	public QualifiedName addParsed(String toParse, String separator) {
-		QualifiedName result = this;
-		for (String element : toParse.split(separator)) {
-			if (!element.isEmpty()) result = result.add(element);
-		}
-		return result;
+	public QualifiedName addParsed(String toParse, String separator, String escape) {
+        String regexEscape = escape.replace("\\", "\\\\");
+        String[] elements = toParse.split("(?<!"+ regexEscape +")" + separator);
+        QualifiedName result = this;
+        for (String element : elements) {
+            if (!element.isEmpty()) result = result.add(unescape(element, escape));
+        }
+        return result;
 	}
+    
+    public QualifiedName addParsed(String toParse, String separator) {
+        return addParsed(toParse, separator, DEFAULT_ESCAPE);
+    }
 	
 	/** Default string representation
 	 * 

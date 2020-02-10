@@ -26,8 +26,18 @@ public class QualifiedNameTest {
 	public void testJoin() {
 		QualifiedName ABC = QualifiedName.of("a","b","c");
 		assertEquals("a/b/c", ABC.join("/"));
+		QualifiedName ABCDEF = QualifiedName.of("a","b","c","d","e","f");
+		assertEquals("a/b/c/d/e/f", ABCDEF.join("/"));
+		QualifiedName HORRIBLE = QualifiedName.of("a","/b","c","d/","e/j","f");
+		assertEquals("a/\\/b/c/d\\//e\\/j/f", HORRIBLE.join("/"));
 		assertEquals("", QualifiedName.ROOT.join("/"));
 	}
+    
+    @Test 
+    public void testJoinParseRoundtrip() {
+		QualifiedName HORRIBLE = QualifiedName.of("a","/b","c","d/","e/j","f");
+        assertEquals(HORRIBLE, QualifiedName.parse(HORRIBLE.join("/"),"/"));
+    }
 
 	@Test
 	public void testEquals() {
@@ -75,10 +85,11 @@ public class QualifiedNameTest {
 	@Test
 	public void testParse() {
 		QualifiedName ABC = QualifiedName.of("a","b","c");
-		assertEquals(ABC, QualifiedName.parse("a/b/c","\\/"));
-		assertEquals(ABC, QualifiedName.parse("/a/b/c","\\/"));
-		assertEquals(ABC, QualifiedName.parse("/a/b/c/","\\/"));
-		assertEquals(ABC, QualifiedName.parse("a//b/c","\\/"));
+		assertEquals(ABC, QualifiedName.parse("a/b/c","/"));
+		assertEquals(ABC, QualifiedName.parse("/a/b/c","/"));
+		assertEquals(ABC, QualifiedName.parse("/a/b/c/","/"));
+		QualifiedName AC = QualifiedName.of("a/b","c");
+		assertEquals(AC, QualifiedName.parse("a\\/b/c","/"));
 	}
 	
 	@Test
