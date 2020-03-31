@@ -5,10 +5,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /** Very simple qualfied name class.
  * 
@@ -35,7 +33,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	 */
 	public final QualifiedName parent;
 
-	/** The name of this thing
+	/** The name of something, within an enclosing scope.
 	 *  
 	 */
 	public final String part;
@@ -67,6 +65,12 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 		return ROOT.addAll(parts);
 	}
 	
+    /** Parse a string into a QualifiedName using the given separator.
+     * 
+     * @param name String to parse
+     * @param separator Separator string 
+     * @return A qualified name consisting of elements of the given string, split by the given separator
+     */
 	public static QualifiedName parse(String name, String separator) {
 		return ROOT.addParsed(name, separator);
 	}
@@ -119,11 +123,24 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
         public boolean equals(Object obj) { return obj == ROOT; }
 	};
 	
+    /** Generate a hash code for a Qualified Name.
+     * 
+     * @return 
+     */
 	@Override
 	public int hashCode() {
-		return parent.hashCode() ^ part.hashCode();
+		return (parent.hashCode() * 17) ^ part.hashCode();
 	}
-
+ 
+    /** Compare this qualified name with another.
+     * 
+     * If parent scopes are equal, return the result of comparing parts. Otherwise
+     * the result of comparing parents. ROOT is deemed equal to itself and less than
+     * any other value.
+     * 
+     * @param other Other qualified name to compare
+     * @return -1 if this name less than other, 0 if equal, 1 if greater.
+     */
 	@Override
 	public int compareTo(QualifiedName other) {
 		if (other == ROOT) return 1;
@@ -132,6 +149,11 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 		return this.part.compareTo(other.part);
 	}
 	
+    /** Compare a qualified name with another object
+     * 
+     * @param other
+     * @return true of other is a QualifiedName which is equal according to the compareTo algorithm.
+     */
 	@Override
 	public boolean equals(Object other) {
 		if (other == null) return false;
@@ -294,7 +316,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 		return result;
 	}
 	
-    enum ParseState { BEGIN, SEPARATOR_AT_START, JOIN, NEXT }
+    private enum ParseState { BEGIN, SEPARATOR_AT_START, JOIN, NEXT }
     
     private static final String unescape(String escaped, String escape) {
         String regexEscape = escape.replace("\\", "\\\\");
@@ -320,6 +342,14 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
         return result;
 	}
     
+    /** Add several elements as parsed from a string
+     * 
+     * Equivalent to addParsed(toParse, separate, DEFAULT_ESCAPE)
+     * 
+     * @param toParse string to parse
+     * @param separator separator used to identify elements within the string
+     * @return The qualified name parsed from then given string
+     */
     public QualifiedName addParsed(String toParse, String separator) {
         return addParsed(toParse, separator, DEFAULT_ESCAPE);
     }
@@ -364,7 +394,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	/** Return elements in a qualified name up to the one matching the predicate 
 	 * 
 	 * @param matching
-	 * @return
+	 * @return A qualified name including elements up to the matching part
 	 */
 	public QualifiedName upTo(Predicate<String> matching) {
 		return apply(ROOT, (result,elem)->result.add(elem), (result)->result==ROOT || !matching.test(result.part)); 
@@ -390,22 +420,32 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 
 	/** Return elements in a qualified name from the last one matching the predicate 
 	 * 
-	 * @param matching
-	 * @return
+	 * @param matching Predicate to match an element in the name
+	 * @return A qualified name including elements from the last one matching the predicate
 	 */
 	public QualifiedName fromEnd(Predicate<String> matching) {
 		return applyReverse(ROOT, (result,elem)->result.add(elem), (result,elem) -> !matching.test(elem)).reverse();
 	}
 	
-	public QualifiedName right(int index) {
-		if (index <= 0) return ROOT;
-		if (index == 1) return QualifiedName.of(part);
-		return parent.right(index-1).add(part);
+    /** Return the n rightmost elements of the name.
+     * 
+     * @param n
+     * @return the n rightmost elements of the name.
+     */
+	public QualifiedName right(int n) {
+		if (n <= 0) return ROOT;
+		if (n == 1) return QualifiedName.of(part);
+		return parent.right(n-1).add(part);
 	}
 	
-	public QualifiedName leftFromEnd(int index) {
-		if (index <= 0) return this;
-		return parent.leftFromEnd(index-1);
+    /** Return what is left of the name after the rightmost n elements have been removed.
+     * 
+     * @param n
+     * @return the name with the n rightmost elements removed.
+     */
+	public QualifiedName leftFromEnd(int n) {
+		if (n <= 0) return this;
+		return parent.leftFromEnd(n-1);
 	}
 
 	
