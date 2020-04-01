@@ -125,7 +125,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
     /** Generate a hash code for a Qualified Name.
      * 
-     * @return 
+     * @return hash code
      */
 	@Override
 	public int hashCode() {
@@ -151,7 +151,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
     /** Compare a qualified name with another object
      * 
-     * @param other
+     * @param other Other qualified name to compare
      * @return true of other is a QualifiedName which is equal according to the compareTo algorithm.
      */
 	@Override
@@ -201,7 +201,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
 	/** Find if any part satisfies a predicate
 	 * 
-	 * @param predicate
+	 * @param predicate test to satisfy
 	 * @return smallest index (from end) of part matching predicate
 	 */
 	public int indexFromEnd(Predicate<String> predicate) {
@@ -212,7 +212,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
 	/** Find if any part satisfies a predicate
 	 * 
-	 * @param predicate
+	 * @param predicate test to satisfy
 	 * @return smallest index (from start) of part matching predicate
 	 */
 	public int indexOf(Predicate<String> predicate) {
@@ -375,7 +375,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
 	/** Check to see if a qualified name ends with a given name
 	 * 
-	 * @param name
+	 * @param name name to check
 	 * @return true if the last elements of this qualified name match the given name
 	 */
 	public boolean endsWith(QualifiedName name) {
@@ -384,7 +384,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
 	/** Check to see if a qualified name starts with a given name
 	 * 
-	 * @param name
+	 * @param name name to check
 	 * @return true if the first elements of this qualified name match the given name
 	 */
 	public boolean startsWith(QualifiedName name) {
@@ -393,7 +393,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
 	/** Return elements in a qualified name up to the one matching the predicate 
 	 * 
-	 * @param matching
+	 * @param matching test to match
 	 * @return A qualified name including elements up to the matching part
 	 */
 	public QualifiedName upTo(Predicate<String> matching) {
@@ -402,7 +402,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
 	/** Return elements in a qualified name up to the given index, counting from start
      * 
-     * @param index
+     * @param index index of first dropped part
      * @return the leftmost parts of the qualified name, up to index
      */
 	public QualifiedName left(int index) {	
@@ -411,7 +411,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 
 	/** Return elements in a qualified name from the given index, counting from start
      * 
-     * @param index
+     * @param index index of first retained part
      * @return the rightmost parts of the qualified name, starting from index
      */
 	public QualifiedName rightFromStart(int index) {
@@ -429,7 +429,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
     /** Return the n rightmost elements of the name.
      * 
-     * @param n
+     * @param n count of elements retained
      * @return the n rightmost elements of the name.
      */
 	public QualifiedName right(int n) {
@@ -440,7 +440,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
     /** Return what is left of the name after the rightmost n elements have been removed.
      * 
-     * @param n
+     * @param n count of elements removed
      * @return the name with the n rightmost elements removed.
      */
 	public QualifiedName leftFromEnd(int n) {
@@ -452,7 +452,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	/** Match against a sequence of regular expressions
 	 * 
 	 * @param pattern A qualified name formed of regular expressions
-	 * @param match_all
+	 * @param match_all matching flag
 	 * @return true if regex parts from pattern match parts of this name 
 	 */
 	public boolean matches(QualifiedName pattern, boolean match_all) {
@@ -461,7 +461,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
 	/** Get the part that is nth from then end
 	 * 
-	 * @param index
+	 * @param index index of part to fetch
 	 * @return A part
 	 */
 	public String getFromEnd(int index) {
@@ -470,7 +470,7 @@ public class QualifiedName implements Comparable<QualifiedName>, Iterable<String
 	
 	/** Get the part that is nth from the start
 	 * 
-	 * @param index
+	 * @param index index of part to fetch
 	 * @return A part
 	 */
 	public String get(int index) {
