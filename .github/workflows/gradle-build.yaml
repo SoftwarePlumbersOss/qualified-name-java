@@ -1,0 +1,25 @@
+name: Build and push to maven repository
+
+on:
+  push:
+    tags : ['deploy.*']
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run Gradle Task
+        uses: SoftwarePlumbers/gradle-rhel-docker@v0.9.5
+        with:
+          gradle-task: publish
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.ref_name }}
+
