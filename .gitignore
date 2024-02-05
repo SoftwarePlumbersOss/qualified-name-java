@@ -4,3 +4,9 @@
 /.settings/
 /.classpath
 /.project
+caches
+daemon
+native
+jdks
+notifications
+/.tmp/
